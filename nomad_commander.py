@@ -1,18 +1,19 @@
-#!/usr/bin/python3
-
 import tkinter as tk
 from tkinter import messagebox, ttk
 import subprocess
 import os
 import threading
 
+# Nomad OS - Master Command Center (V2.2)
+# Sistemin beyni: Tüm modülleri tarar ve tek tıkla başlatır.
+
 class NomadCommander:
     def __init__(self, root):
         self.root = root
-        self.root.title("Nomad OS - Master Command Center (V2.2)")
+        self.root.title("Nomad OS - Master Command Center")
         self.root.geometry("950x750")
         self.root.configure(bg="#1a1b26")
-
+        
         self.colors = {
             "bg": "#1a1b26",
             "sidebar": "#16161e",
@@ -26,7 +27,7 @@ class NomadCommander:
             "gray": "#414868"
         }
 
-        # Uygulama Meta Verileri (Resmi Araçlar)
+        # Uygulama Meta Verileri
         self.app_registry = {
             "nomad-ram": ("🧠 RAM Optimizer", "Belleği temizle ve zRAM'i yönet.", self.colors["purple"]),
             "nomad-cleaner": ("🧹 Sistem Temizliği", "Önbelleği ve çöpleri tek tıkla sil.", self.colors["orange"]),
@@ -35,26 +36,28 @@ class NomadCommander:
             "nomad-lang": ("🌐 Dil & Klavye", "Global dil arama ve indirme merkezi.", self.colors["accent"]),
             "nomad-pro": ("🎨 Pro Dashboard", "Tema, şifre ve stil ayarları.", self.colors["purple"]),
             "nomad-hub": ("🚀 Uygulama Hub", "Tek tıkla popüler yazılım kurucu.", self.colors["accent"]),
-            "nomad-zsh-fix": ("📟 Terminal Tamiri", "Zsh ve p10k hatalarını sıfırla.", self.colors["fg"]),
+            "nomad-settings": ("⚙️ Ayarlar", "Kullanıcı şifresi ve cihaz adı yönetimi.", self.colors["blue"]),
+            "nomad-drivers": ("🔉 Sürücü Merkezi", "Lenovo ses ve donanım onarımı.", self.colors["green"]),
+            "nomad-pkg": ("📦 Repo Center", "Bulut senkronizasyonu ve güncelleme.", self.colors["accent"]),
             "pamac-manager": ("🛠️ Paket Mağazası", "Pamac (AUR/Flatpak) Mağazası.", self.colors["red"]),
         }
 
         self.setup_ui()
 
     def setup_ui(self):
-        # Sol Menü
+        # Sol Menü (Sidebar)
         self.sidebar = tk.Frame(self.root, bg=self.colors["sidebar"], width=220)
         self.sidebar.pack(side="left", fill="y")
-
+        
         logo_frame = tk.Frame(self.sidebar, bg=self.colors["sidebar"], pady=30)
         logo_frame.pack(fill="x")
         tk.Label(logo_frame, text="🛡️ NOMAD", font=("Sans", 20, "bold"), bg=self.colors["sidebar"], fg=self.colors["accent"]).pack()
         tk.Label(logo_frame, text="STABLE COMMANDER", font=("Sans", 9), bg=self.colors["sidebar"], fg=self.colors["fg"]).pack()
 
-        # Kaydırma Alanı
+        # Kaydırma Alanı (Canvas)
         self.container = tk.Frame(self.root, bg=self.colors["bg"])
         self.container.pack(side="right", expand=True, fill="both")
-
+        
         self.canvas = tk.Canvas(self.container, bg=self.colors["bg"], highlightthickness=0)
         self.scrollbar = ttk.Scrollbar(self.container, orient="vertical", command=self.canvas.yview)
         self.scrollable_frame = tk.Frame(self.canvas, bg=self.colors["bg"], padx=30, pady=20)
@@ -67,9 +70,8 @@ class NomadCommander:
         self.scrollbar.pack(side="right", fill="y")
 
         # Başlık
-        self.header_label = tk.Label(self.scrollable_frame, text="Sistem Komuta Merkezi", font=("Sans", 22, "bold"),
-                                    bg=self.colors["bg"], fg="white")
-        self.header_label.pack(anchor="w", pady=(0, 20))
+        tk.Label(self.scrollable_frame, text="Sistem Komuta Merkezi", font=("Sans", 22, "bold"), 
+                 bg=self.colors["bg"], fg="white").pack(anchor="w", pady=(0, 20))
 
         self.grid_frame = tk.Frame(self.scrollable_frame, bg=self.colors["bg"])
         self.grid_frame.pack(fill="both", expand=True)
@@ -101,10 +103,10 @@ class NomadCommander:
     def add_app_card(self, r, c, title, desc, command, color):
         card = tk.Frame(self.grid_frame, bg=self.colors["card"], padx=15, pady=15, highlightthickness=1, highlightbackground=self.colors["gray"])
         card.grid(row=r, column=c, padx=10, pady=10, sticky="nsew")
-
+        
         tk.Label(card, text=title, font=("Sans", 11, "bold"), bg=self.colors["card"], fg=color).pack(anchor="w")
         tk.Label(card, text=desc, font=("Sans", 9), bg=self.colors["card"], fg="#94a3b8", wraplength=180, justify="left").pack(anchor="w", pady=5)
-
+        
         btn = tk.Button(card, text="Başlat", bg=color, fg=self.colors["bg"], font=("Sans", 9, "bold"), relief="flat", command=lambda cmd=command: self.launch_app(cmd))
         btn.pack(side="bottom", fill="x", pady=(10, 0))
         self.grid_frame.grid_columnconfigure(c, weight=1)
@@ -112,23 +114,17 @@ class NomadCommander:
     def launch_app(self, cmd):
         def run():
             try:
-                # Gelişmiş hata ayıklama için Popen kullanıyoruz
-                # Bazı araçlar sudo yetkisi istediği için bir terminale ihtiyaç duyabilir
                 process = subprocess.Popen([cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
                 stdout, stderr = process.communicate()
-
                 if process.returncode != 0 and stderr:
-                    # Eğer araç hata vererek kapandıysa hatayı göster
                     messagebox.showerror("Uygulama Hatası", f"'{cmd}' bir hata ile karşılaştı:\n\n{stderr}")
             except Exception as e:
-                messagebox.showerror("Sistem Hatası", f"'{cmd}' başlatılamadı.\nDosya yolu veya izinleri kontrol edin.\n\nHata: {e}")
-
+                messagebox.showerror("Sistem Hatası", f"'{cmd}' başlatılamadı.\n\nHata: {e}")
+        
         threading.Thread(target=run, daemon=True).start()
 
 if __name__ == "__main__":
     root = tk.Tk()
     app = NomadCommander(root)
-    # Alt Yenileme Butonu
-    refresh_btn = tk.Button(root, text="🔄 Listeyi ve İzinleri Onar", bg="#16161e", fg="#7aa2f7", relief="flat", font=("Sans", 8), command=app.refresh_apps)
-    refresh_btn.pack(side="bottom", fill="x", pady=5)
+    tk.Button(root, text="🔄 Listeyi Yenile", bg="#16161e", fg="#7aa2f7", relief="flat", font=("Sans", 8), command=app.refresh_apps).pack(side="bottom", fill="x", pady=5)
     root.mainloop()
